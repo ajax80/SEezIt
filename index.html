@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Agent Office</title>
+<style>
+/* ── BASE ────────────────────────────────────────────────── */
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #1a1208;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+  width: 100vw; height: 100vh;
+  user-select: none;
+  zoom: 1.4;
+}
+
+/* ── ROOM ────────────────────────────────────────────────── */
+#room {
+  position: relative;
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,180,80,0.07) 0%, transparent 60%),
+    linear-gradient(180deg, #241808 0%, #1a1208 40%, #120d06 100%);
+}
+
+/* Floor */
+#room::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 38%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+    transparent 1px, transparent 80px
+  ),
+  repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px,
+    transparent 1px, transparent 80px
+  ),
+  linear-gradient(180deg, #2a1c0a, #1e1408);
+  border-top: 2px solid rgba(255,180,80,0.08);
+}
+
+/* ── WALL DECOR ──────────────────────────────────────────── */
+.wall-shelf {
+  position: absolute;
+  top: 60px; right: 40px;
+  width: 160px; height: 12px;
+  background: #5c3a1a;
+  border-radius: 3px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5);
+}
+.wall-shelf::before {
+  content: '';
+  position: absolute;
+  top: 12px; left: 8px;
+  width: 20px; height: 35px;
+  background: #7c4a2a;
+  border-radius: 2px;
+  box-shadow: 28px 0 0 #8b3a2a, 56px 0 0 #4a7a3a, 84px 0 0 #7c4a2a, 112px 0 0 #3a6a7a;
+}
+
+.wall-clock {
+  position: absolute;
+  top: 50px; left: 50%;
+  transform: translateX(-50%);
+  width: 50px; height: 50px;
+  border: 3px solid #5c3a1a;
+  border-radius: 50%;
+  background: #2a1c0a;
+}
+.wall-clock::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 2px; height: 14px;
+  background: #ff9f4a;
+  transform: translateX(-50%) rotate(0deg);
+  transform-origin: bottom center;
+  animation: clock-hand 60s linear infinite;
+}
+@keyframes clock-hand { to { transform: translateX(-50%) rotate(360deg); } }
+
+.window-frame {
+  position: absolute;
+  top: 40px; left: 40px;
+  width: 120px; height: 90px;
+  border: 4px solid #5c3a1a;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #1a3a5c 0%, #0a2040 50%, #1a3a5c 100%);
+  overflow: hidden;
+}
+.window-frame::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 3px; height: 100%;
+  background: #5c3a1a;
+}
+.window-frame::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 0;
+  width: 100%; height: 3px;
+  background: #5c3a1a;
+}
+.stars {
+  position: absolute;
+  width: 100%; height: 100%;
+  background-image: radial-gradient(1px 1px at 20% 30%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 20%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 60%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 70%, #fff 0%, transparent 100%);
+  opacity: 0.7;
+}
+
+/* Plant */
+.plant {
+  position: absolute;
+  bottom: 38%; right: 20px;
+}
+.plant-pot {
+  width: 28px; height: 20px;
+  background: linear-gradient(180deg, #7c3a1a, #5c2a0a);
+  border-radius: 0 0 5px 5px;
+  margin: 0 auto;
+}
+.plant-leaves {
+  display: flex; justify-content: center;
+  margin-bottom: 2px;
+}
+.leaf {
+  width: 18px; height: 24px;
+  background: radial-gradient(ellipse, #3a7a2a, #1a4a0a);
+  border-radius: 50% 50% 50% 0;
+  animation: leaf-sway 4s ease-in-out infinite;
+}
+.leaf:nth-child(2) {
+  border-radius: 50% 50% 0 50%;
+  animation-delay: -2s;
+}
+@keyframes leaf-sway {
+  0%,100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* ── TITLE BAR ───────────────────────────────────────────── */
+#title-bar {
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: rgba(255,180,80,0.4);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ── DESKS ───────────────────────────────────────────────── */
+.desk-slot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desk {
+  position: relative;
+  width: 140px; height: 60px;
+  background: linear-gradient(180deg, #7c4a20, #5c3410);
+  border-radius: 6px 6px 3px 3px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+/* Monitor on desk */
+.monitor {
+  position: absolute;
+  top: -52px; left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+}
+.monitor-screen {
+  width: 64px; height: 42px;
+  border: 2px solid #3a2a1a;
+  border-radius: 4px 4px 0 0;
+  background: #0a0f1a;
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 0.5s;
+}
+.monitor-stand {
+  width: 6px; height: 8px;
+  background: #3a2a1a;
+  margin: 0 auto;
+}
+.monitor-base {
+  width: 22px; height: 3px;
+  background: #3a2a1a;
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
+/* Screen content */
+.screen-content {
+  width: 100%; height: 100%;
+  padding: 3px;
+  font-size: 4px;
+  line-height: 1.4;
+  color: #4aff8a;
+  font-family: monospace;
+  overflow: hidden;
+}
+.screen-line {
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: screen-scroll 8s linear infinite;
+}
+@keyframes screen-scroll {
+  0% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* Desk items */
+.coffee-cup {
+  position: absolute;
+  bottom: 6px; right: 10px;
+  width: 10px; height: 11px;
+  background: #3a2010;
+  border-radius: 0 0 3px 3px;
+  border: 1.5px solid #5a3a1a;
+}
+.coffee-cup::after {
+  content: '';
+  position: absolute;
+  top: 1px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 2px;
+  background: #3a1a0a;
+  border-radius: 50%;
+}
+
+/* Desk lamp */
+.lamp {
+  position: absolute;
+  bottom: 6px; left: 10px;
+  width: 6px; height: 20px;
+  background: #5a3a1a;
+  border-radius: 2px;
+}
+.lamp::before {
+  content: '';
+  position: absolute;
+  top: -6px; left: -5px;
+  width: 14px; height: 7px;
+  background: #8a6a1a;
+  border-radius: 50% 50% 0 0;
+}
+.lamp-glow {
+  position: absolute;
+  top: -40px; left: -20px;
+  width: 50px; height: 40px;
+  background: radial-gradient(ellipse, rgba(255,220,80,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── CHARACTERS ──────────────────────────────────────────── */
+.character {
+  position: relative;
+  margin-bottom: -2px;
+  animation: idle-bob 3s ease-in-out infinite;
+  transform-origin: bottom center;
+  cursor: pointer;
+  transition: filter 0.3s;
+}
+
+.char-shadow {
+  width: 30px; height: 6px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 50%;
+  margin: 0 auto;
+  filter: blur(2px);
+}
+
+/* Character SVG sizing */
+.character svg {
+  display: block;
+  margin: 0 auto;
+  width: 44px; height: 72px;
+}
+
+/* ── ANIMATIONS BY STATE ─────────────────────────────────── */
+@keyframes idle-bob {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes working-type {
+  0%,100% { transform: translateY(0) rotate(-3deg); }
+  25% { transform: translateY(-1px) rotate(2deg); }
+  75% { transform: translateY(1px) rotate(-1deg); }
+}
+
+@keyframes alert-shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-4px) rotate(-2deg); }
+  40% { transform: translateX(4px) rotate(2deg); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes celebrate-jump {
+  0%,100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-12px) scale(1.05); }
+  60% { transform: translateY(-6px) scale(0.98); }
+}
+
+@keyframes lean-back {
+  0%,100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(8deg) translateY(2px); }
+}
+
+@keyframes highfive-bounce {
+  0%   { transform: scale(1)    translateY(0)    rotate(0deg); }
+  20%  { transform: scale(1.25) translateY(-18px) rotate(-6deg); }
+  45%  { transform: scale(1.15) translateY(-12px) rotate(6deg); }
+  65%  { transform: scale(1.2)  translateY(-20px) rotate(-4deg); }
+  85%  { transform: scale(1.05) translateY(-6px)  rotate(2deg); }
+  100% { transform: scale(1)    translateY(0)    rotate(0deg); }
+}
+.character.state-highfive {
+  animation: highfive-bounce 0.7s ease-out !important;
+  filter: drop-shadow(0 0 14px #ffdd44) !important;
+  cursor: default;
+}
+.character.state-complete { cursor: pointer; }
+
+@keyframes hand-float {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1); }
+  40%  { opacity: 1; transform: translateX(-50%) translateY(-35px) scale(1.4); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-80px) scale(0.7); }
+}
+.floating-hand {
+  position: absolute;
+  font-size: 2.2rem;
+  left: 50%;
+  bottom: 130px;
+  pointer-events: none;
+  animation: hand-float 1.1s ease-out forwards;
+  z-index: 200;
+}
+
+.character.state-working { animation: working-type 0.4s ease-in-out infinite; }
+.character.state-alert   { animation: alert-shake 0.4s ease-in-out infinite; filter: drop-shadow(0 0 8px #ff4444); }
+.character.state-complete { animation: celebrate-jump 0.6s ease-in-out 3; }
+.character.state-idle.hobby-active { animation: lean-back 4s ease-in-out infinite; }
+
+/* ── MONITOR GLOW STATES ─────────────────────────────────── */
+.monitor-screen.working { box-shadow: 0 0 12px var(--agent-color), 0 0 4px var(--agent-color); }
+.monitor-screen.alert   { box-shadow: 0 0 14px #ff4444, 0 0 4px #ff4444; background: #1a0000; }
+.monitor-screen.idle    { box-shadow: none; background: #0a0f1a; }
+
+/* ── SPEECH BUBBLES ──────────────────────────────────────── */
+.bubble {
+  position: absolute;
+  bottom: 240px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.95);
+  color: #1a1208;
+  font-size: 0.62rem;
+  padding: 5px 8px;
+  border-radius: 10px 10px 10px 2px;
+  white-space: nowrap;
+  max-width: 160px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+  z-index: 100;
+  pointer-events: none;
+  animation: bubble-in 0.2s ease-out;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px; left: 10px;
+  border: 6px solid transparent;
+  border-top-color: rgba(255,255,255,0.95);
+  border-bottom: 0;
+  border-left: 0;
+}
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+
+/* ── PET INDICATORS ──────────────────────────────────────── */
+.pet {
+  position: absolute;
+  font-size: 1rem;
+  bottom: 4px;
+  animation: pet-idle 2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes pet-idle {
+  0%,100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-3px) rotate(5deg); }
+}
+
+/* ── HOBBY ITEMS ─────────────────────────────────────────── */
+.hobby-item {
+  position: absolute;
+  font-size: 1.1rem;
+  bottom: 65px;
+  right: -20px;
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  animation: hobby-float 3s ease-in-out infinite;
+}
+.hobby-item.visible { opacity: 1; }
+@keyframes hobby-float {
+  0%,100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+/* ── NAME TAGS ───────────────────────────────────────────── */
+.name-tag {
+  position: absolute;
+  bottom: 162px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(20, 14, 6, 0.92);
+  border: 1px solid var(--agent-color, rgba(255,180,80,0.4));
+  border-radius: 4px;
+  padding: 3px 8px 3px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 8px color-mix(in srgb, var(--agent-color, #ffb450) 20%, transparent);
+}
+.name-tag .nt-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--agent-color, #ffb450);
+  line-height: 1;
+}
+.name-tag .nt-role {
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 220, 160, 0.7);
+  line-height: 1;
+}
+
+/* ── STATUS LOG ──────────────────────────────────────────── */
+#status-log {
+  position: absolute;
+  bottom: 12px; left: 12px;
+  width: 280px;
+  background: rgba(10,8,4,0.85);
+  border: 1px solid rgba(255,180,80,0.15);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.62rem;
+  font-family: monospace;
+  max-height: 100px;
+  overflow: hidden;
+}
+#status-log .log-title {
+  color: rgba(255,180,80,0.5);
+  letter-spacing: 0.2em;
+  font-size: 0.55rem;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.log-entry {
+  color: rgba(255,220,140,0.7);
+  padding: 1px 0;
+  display: flex; gap: 6px;
+  animation: log-fade-in 0.3s ease;
+}
+.log-entry .log-agent { color: var(--agent-color); font-weight: bold; }
+.log-entry .log-time  { color: rgba(255,255,255,0.3); }
+@keyframes log-fade-in { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; } }
+
+/* ── COMMS LINE ──────────────────────────────────────────── */
+#comms-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── AMBIENT LIGHT ───────────────────────────────────────── */
+.desk-light {
+  position: absolute;
+  top: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 80px;
+  background: radial-gradient(ellipse, rgba(255,200,80,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── IDLE HOBBY SPECIFIC ─────────────────────────────────── */
+.book-anim {
+  animation: book-read 2s ease-in-out infinite;
+}
+@keyframes book-read {
+  0%,100% { transform: rotate(-5deg) translateY(0); }
+  50% { transform: rotate(-8deg) translateY(-2px); }
+}
+
+/* ── STRESS ITEM (cigarette on alert) ───────────────────── */
+.stress-item {
+  position: absolute;
+  font-size: 1.1rem;
+  bottom: 65px;
+  left: -22px;
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  animation: smoke-drift 2.5s ease-in-out infinite;
+}
+.stress-item.visible { opacity: 1; }
+@keyframes smoke-drift {
+  0%,100% { transform: rotate(-10deg) translateY(0); }
+  50% { transform: rotate(-5deg) translateY(-4px); }
+}
+
+/* ── WADE stays chill even under alert ──────────────────── */
+#char-wade.state-alert {
+  animation: idle-bob 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(223,127,255,0.3));
+}
+</style>
+</head>
+<body>
+
+<div id="room">
+
+  <!-- Wall decor -->
+  <div class="window-frame"><div class="stars"></div></div>
+  <div class="wall-clock"></div>
+  <div class="wall-shelf"></div>
+  <div class="plant">
+    <div class="plant-leaves">
+      <div class="leaf"></div>
+      <div class="leaf"></div>
+      <div class="leaf"></div>
+    </div>
+    <div class="plant-pot"></div>
+  </div>
+
+  <div id="title-bar">⚡ Agent Office</div>
+
+  <!-- Comms canvas overlay -->
+  <canvas id="comms-canvas"></canvas>
+
+  <!-- Agent desk slots injected by JS -->
+  <div id="agents-container"></div>
+
+  <!-- Status log -->
+  <div id="status-log">
+    <div class="log-title">▸ Activity Log</div>
+    <div id="log-entries"></div>
+  </div>
+
+</div>
+
+<script>
+// ── AGENT CONFIG ────────────────────────────────────────────
+const AGENTS = {
+  aria: {
+    name: 'ARIA', role: 'Assistant',
+    color: '#ff9f7f',
+    pet: '🐱', petLabel: 'Whiskers',
+    hobby: '🍷', hobbyLabel: 'wine',
+    quips: {
+      working: ['On it!', 'Processing...', 'Researching...', 'Installing...'],
+      idle:    ['...', 'zzzz', '🍷 cheers', 'Whiskers agrees'],
+      alert:   ['Error!', '500??', 'Something broke!'],
+      complete:['Done! ✓', 'Installed!', 'All good!']
+    }
+  },
+  orca: {
+    name: 'ORCA', role: 'Orchestrator',
+    color: '#7fc8ff',
+    pet: '🐕', petLabel: 'Byte',
+    hobby: '🍷', hobbyLabel: 'wine',
+    quips: {
+      working: ['Routing...', 'On it', 'Handling event', 'Escalating...'],
+      idle:    ['Quiet...', 'Byte is napping', '🍷 smooth', 'Monitoring...'],
+      alert:   ['CRITICAL!', 'Escalating!', 'All hands!'],
+      complete:['Resolved ✓', 'Handled', 'Done!']
+    }
+  },
+  vita: {
+    name: 'VITA', role: 'Health Monitor',
+    color: '#7fff9f',
+    pet: '🐠', petLabel: 'Fin',
+    hobby: '🍷', hobbyLabel: 'wine',
+    quips: {
+      working: ['Checking...', 'Scanning...', 'All nodes...', 'Running tests'],
+      idle:    ['All healthy', 'Fin is happy', '🍷 rosé o\'clock', 'Green across board'],
+      alert:   ['Machine down!', 'CRITICAL!', 'Unreachable!'],
+      complete:['Health OK ✓', 'All clear!', 'Systems nominal']
+    }
+  },
+  tidy: {
+    name: 'TIDY', role: 'Disk Cleanup',
+    color: '#ffdf7f',
+    pet: '🐹', petLabel: 'Nibbles',
+    hobby: '🍷', hobbyLabel: 'wine',
+    quips: {
+      working: ['Cleaning...', 'Sweeping...', 'Checking disks', 'Freeing space'],
+      idle:    ['All tidy!', 'Nibbles is spinning', '🍷 earned this', 'Clean as a whistle'],
+      alert:   ['Disk error!', 'Something is off!'],
+      complete:['Clean! ✓', 'All clear!', 'Spotless!']
+    }
+  },
+  wade: {
+    name: 'WADE', role: 'Kodi Guard',
+    color: '#df7fff',
+    pet: '🤖', petLabel: 'Bolt',
+    hobby: '🍷', hobbyLabel: 'wine',
+    quips: {
+      working: ['Watching Kodi...', 'Restarting!', 'Checking stream', 'On guard'],
+      idle:    ['Kodi is fine', '🍷 sipping...', 'Bolt says hi', 'All streams up'],
+      alert:   ['Kodi glitched', 'sorting it...', 'back in a sec'],
+      complete:['Kodi back up ✓', 'Restarted OK', 'Stream live!']
+    }
+  }
+};
+
+// Layout positions (% of container)
+const LAYOUT = {
+  aria: { left: '8%',  bottom: '33%' },
+  orca: { left: '30%', bottom: '33%' },
+  vita: { left: '56%', bottom: '33%' },
+  tidy: { left: '18%', bottom: '10%' },
+  wade: { left: '62%', bottom: '10%' }
+};
+
+// ── STATE ────────────────────────────────────────────────────
+const agentState = {};
+const agentEls   = {};
+const idleTimers  = {};
+
+Object.keys(AGENTS).forEach(id => {
+  agentState[id] = { state: 'idle', hobbyActive: false };
+});
+
+// ── BUILD OFFICE ─────────────────────────────────────────────
+function buildOffice() {
+  const container = document.getElementById('agents-container');
+
+  Object.entries(AGENTS).forEach(([id, agent]) => {
+    const pos = LAYOUT[id];
+    const slot = document.createElement('div');
+    slot.className = 'desk-slot';
+    slot.id = `slot-${id}`;
+    slot.style.cssText = `
+      left: ${pos.left};
+      bottom: ${pos.bottom};
+      --agent-color: ${agent.color};
+    `;
+
+    slot.innerHTML = `
+      <div class="desk-light"></div>
+      <div class="bubble" id="bubble-${id}" style="display:none"></div>
+      <div class="name-tag" style="--agent-color:${agent.color}">
+        <span class="nt-name">${agent.name}</span>
+        <span class="nt-role">${agent.role}</span>
+      </div>
+      <div class="character state-idle" id="char-${id}">
+        ${buildCharacterSVG(id, agent)}
+        <div class="hobby-item" id="hobby-${id}">${agent.hobby}</div>
+        <div class="stress-item" id="stress-${id}">🚬</div>
+      </div>
+      <div class="char-shadow"></div>
+      <div class="desk" id="desk-${id}">
+        <div class="monitor">
+          <div class="monitor-screen idle" id="screen-${id}" style="--agent-color:${agent.color}">
+            <div class="screen-content" id="screencontent-${id}">
+              ${buildScreenLines()}
+            </div>
+          </div>
+          <div class="monitor-stand"></div>
+          <div class="monitor-base"></div>
+        </div>
+        <div class="coffee-cup"></div>
+        <div class="lamp"><div class="lamp-glow"></div></div>
+        <span class="pet" style="right:${Math.random()>0.5?'8px':'auto'};left:${Math.random()>0.5?'auto':'8px'}">${agent.pet}</span>
+      </div>
+    `;
+
+    container.appendChild(slot);
+    agentEls[id] = slot;
+  });
+}
+
+function buildScreenLines() {
+  const lines = ['> init...', '> ready', '> standby', '> online', '> waiting'];
+  return lines.map((l,i) =>
+    `<div class="screen-line" style="animation-delay:${i*1.5}s">${l}</div>`
+  ).join('');
+}
+
+function buildCharacterSVG(id, agent) {
+  const c = agent.color;
+  const chars = {
+    aria: `<svg viewBox="0 0 44 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- Hair -->
+      <ellipse cx="22" cy="16" rx="12" ry="8" fill="#2a1a08"/>
+      <path d="M10 16 Q8 8 14 6 Q22 2 30 6 Q36 8 34 16" fill="#3a2a0a"/>
+      <!-- Head -->
+      <ellipse cx="22" cy="20" rx="10" ry="11" fill="#f5c89a"/>
+      <!-- Eyes -->
+      <circle cx="18" cy="19" r="2" fill="#2a1a08"/>
+      <circle cx="26" cy="19" r="2" fill="#2a1a08"/>
+      <circle cx="18.7" cy="18.3" r="0.7" fill="white"/>
+      <circle cx="26.7" cy="18.3" r="0.7" fill="white"/>
+      <!-- Smile -->
+      <path d="M18 24 Q22 27 26 24" stroke="#c8845a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Body -->
+      <rect x="13" y="30" width="18" height="22" rx="5" fill="${c}" opacity="0.9"/>
+      <!-- Arms -->
+      <rect x="6"  y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <rect x="31" y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <!-- Legs -->
+      <rect x="14" y="50" width="6" height="16" rx="3" fill="#4a3a2a"/>
+      <rect x="24" y="50" width="6" height="16" rx="3" fill="#4a3a2a"/>
+      <!-- Feet -->
+      <ellipse cx="17" cy="66" rx="5" ry="3" fill="#3a2a1a"/>
+      <ellipse cx="27" cy="66" rx="5" ry="3" fill="#3a2a1a"/>
+    </svg>`,
+
+    orca: `<svg viewBox="0 0 44 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- Hair short -->
+      <rect x="12" y="9" width="20" height="8" rx="4" fill="#1a0a04"/>
+      <!-- Head -->
+      <ellipse cx="22" cy="20" rx="10" ry="11" fill="#e8b88a"/>
+      <!-- Eyes -->
+      <circle cx="18" cy="19" r="2.2" fill="#1a1208"/>
+      <circle cx="26" cy="19" r="2.2" fill="#1a1208"/>
+      <circle cx="18.8" cy="18.2" r="0.8" fill="white"/>
+      <circle cx="26.8" cy="18.2" r="0.8" fill="white"/>
+      <!-- Serious expression -->
+      <path d="M18 24 Q22 25 26 24" stroke="#b87850" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Body - collared shirt -->
+      <rect x="13" y="30" width="18" height="22" rx="5" fill="${c}" opacity="0.9"/>
+      <path d="M22 30 L19 36 L22 38 L25 36 Z" fill="white" opacity="0.6"/>
+      <!-- Arms -->
+      <rect x="6"  y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <rect x="31" y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <!-- Legs -->
+      <rect x="14" y="50" width="6" height="16" rx="3" fill="#2a2a3a"/>
+      <rect x="24" y="50" width="6" height="16" rx="3" fill="#2a2a3a"/>
+      <ellipse cx="17" cy="66" rx="5" ry="3" fill="#1a1a2a"/>
+      <ellipse cx="27" cy="66" rx="5" ry="3" fill="#1a1a2a"/>
+    </svg>`,
+
+    vita: `<svg viewBox="0 0 44 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- Long hair -->
+      <ellipse cx="22" cy="16" rx="12" ry="10" fill="#4a2a0a"/>
+      <rect x="10" y="14" width="5" height="18" rx="3" fill="#4a2a0a"/>
+      <rect x="29" y="14" width="5" height="18" rx="3" fill="#4a2a0a"/>
+      <!-- Head -->
+      <ellipse cx="22" cy="20" rx="10" ry="11" fill="#f0c09a"/>
+      <!-- Eyes -->
+      <circle cx="18" cy="19" r="2" fill="#1a2a1a"/>
+      <circle cx="26" cy="19" r="2" fill="#1a2a1a"/>
+      <circle cx="18.6" cy="18.4" r="0.7" fill="white"/>
+      <circle cx="26.6" cy="18.4" r="0.7" fill="white"/>
+      <!-- Friendly smile -->
+      <path d="M17 23 Q22 28 27 23" stroke="#c07850" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <!-- Body - scrubs style -->
+      <rect x="13" y="30" width="18" height="22" rx="5" fill="${c}" opacity="0.9"/>
+      <rect x="18" y="32" width="8" height="4" rx="1" fill="white" opacity="0.4"/>
+      <!-- Arms -->
+      <rect x="6"  y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <rect x="31" y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <!-- Legs -->
+      <rect x="14" y="50" width="6" height="16" rx="3" fill="#3a4a3a"/>
+      <rect x="24" y="50" width="6" height="16" rx="3" fill="#3a4a3a"/>
+      <ellipse cx="17" cy="66" rx="5" ry="3" fill="#2a3a2a"/>
+      <ellipse cx="27" cy="66" rx="5" ry="3" fill="#2a3a2a"/>
+    </svg>`,
+
+    tidy: `<svg viewBox="0 0 44 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- Cap / beanie -->
+      <ellipse cx="22" cy="13" rx="11" ry="7" fill="#8a6a1a"/>
+      <rect x="11" y="12" width="22" height="5" rx="2" fill="#6a4a10"/>
+      <!-- Head -->
+      <ellipse cx="22" cy="21" rx="10" ry="10" fill="#f2c49c"/>
+      <!-- Eyes -->
+      <circle cx="18.5" cy="20" r="2" fill="#2a1a08"/>
+      <circle cx="25.5" cy="20" r="2" fill="#2a1a08"/>
+      <circle cx="19.2" cy="19.3" r="0.7" fill="white"/>
+      <circle cx="26.2" cy="19.3" r="0.7" fill="white"/>
+      <!-- Smirk -->
+      <path d="M18 25 Q21 27 25 24" stroke="#b87040" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Body - hoodie -->
+      <rect x="12" y="30" width="20" height="22" rx="6" fill="${c}" opacity="0.9"/>
+      <path d="M16 30 Q22 35 28 30" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>
+      <!-- Arms -->
+      <rect x="5"  y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <rect x="32" y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <!-- Legs -->
+      <rect x="14" y="50" width="6" height="16" rx="3" fill="#5a4a2a"/>
+      <rect x="24" y="50" width="6" height="16" rx="3" fill="#5a4a2a"/>
+      <ellipse cx="17" cy="66" rx="5" ry="3" fill="#4a3a1a"/>
+      <ellipse cx="27" cy="66" rx="5" ry="3" fill="#4a3a1a"/>
+    </svg>`,
+
+    wade: `<svg viewBox="0 0 44 72" xmlns="http://www.w3.org/2000/svg">
+      <!-- Spiky hair -->
+      <path d="M12 16 L14 6 L18 14 L20 4 L22 14 L24 4 L26 14 L30 6 L32 16" fill="#1a0808" stroke="#1a0808" stroke-width="1" stroke-linejoin="round"/>
+      <!-- Head -->
+      <ellipse cx="22" cy="20" rx="10" ry="11" fill="#f4b890"/>
+      <!-- Eyes - half-closed cool look -->
+      <path d="M15.5 18.5 Q18 17 20.5 18.5" stroke="#1a1208" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <path d="M23.5 18.5 Q26 17 28.5 18.5" stroke="#1a1208" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Smug smile -->
+      <path d="M18 24 Q22 26 27 23" stroke="#b07040" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <!-- Body - tee -->
+      <rect x="12" y="30" width="20" height="22" rx="5" fill="${c}" opacity="0.9"/>
+      <text x="22" y="44" text-anchor="middle" font-size="7" fill="rgba(255,255,255,0.5)">⚡</text>
+      <!-- Arms -->
+      <rect x="5"  y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <rect x="32" y="31" width="7"  height="14" rx="3" fill="${c}" opacity="0.8"/>
+      <!-- Legs - joggers -->
+      <rect x="14" y="50" width="6" height="16" rx="3" fill="#3a3a4a"/>
+      <rect x="24" y="50" width="6" height="16" rx="3" fill="#3a3a4a"/>
+      <ellipse cx="17" cy="66" rx="5" ry="3" fill="#2a2a3a"/>
+      <ellipse cx="27" cy="66" rx="5" ry="3" fill="#2a2a3a"/>
+    </svg>`
+  };
+  return chars[id] || chars.aria;
+}
+
+// ── STATE MACHINE ─────────────────────────────────────────────
+function setState(agentId, newState, message) {
+  const agent = AGENTS[agentId];
+  const charEl   = document.getElementById(`char-${agentId}`);
+  const screenEl = document.getElementById(`screen-${agentId}`);
+  const hobbyEl  = document.getElementById(`hobby-${agentId}`);
+
+  if (!charEl) return;
+
+  const stressEl = document.getElementById(`stress-${agentId}`);
+
+  // Remove old state classes
+  charEl.className = `character state-${newState}`;
+  screenEl.className = `monitor-screen ${newState}`;
+
+  agentState[agentId].state = newState;
+
+  // Hobby / stress item visibility
+  if (newState === 'idle') {
+    if (stressEl) stressEl.classList.remove('visible');
+    setTimeout(() => {
+      hobbyEl.classList.add('visible');
+      charEl.classList.add('hobby-active');
+      agentState[agentId].hobbyActive = true;
+    }, 8000 + Math.random() * 5000);
+  } else if (newState === 'alert') {
+    hobbyEl.classList.remove('visible');
+    charEl.classList.remove('hobby-active');
+    agentState[agentId].hobbyActive = false;
+    if (stressEl) setTimeout(() => stressEl.classList.add('visible'), 800);
+  } else {
+    hobbyEl.classList.remove('visible');
+    charEl.classList.remove('hobby-active');
+    agentState[agentId].hobbyActive = false;
+    if (stressEl) stressEl.classList.remove('visible');
+  }
+
+  // Pick a quip
+  const quips = agent.quips[newState] || agent.quips.idle;
+  const quip = quips[Math.floor(Math.random() * quips.length)];
+  showBubble(agentId, quip);
+
+  // Log it
+  addLog(agentId, message || quip, newState);
+
+  // Update screen content
+  updateScreenContent(agentId, newState, message);
+
+  // Auto-return to idle after working/complete
+  clearTimeout(idleTimers[agentId]);
+  if (newState === 'working' || newState === 'complete') {
+    idleTimers[agentId] = setTimeout(() => {
+      setState(agentId, 'idle', null);
+    }, newState === 'complete' ? 4000 : 30000);
+  }
+}
+
+function showBubble(agentId, text) {
+  const bubble = document.getElementById(`bubble-${agentId}`);
+  if (!bubble) return;
+  bubble.textContent = text;
+  bubble.style.display = 'block';
+  bubble.style.animation = 'none';
+  bubble.offsetHeight;
+  bubble.style.animation = 'bubble-in 0.2s ease-out';
+}
+
+function updateScreenContent(agentId, state, message) {
+  const el = document.getElementById(`screencontent-${agentId}`);
+  if (!el) return;
+  const lines = {
+    working:  ['> active', '> processing...', `> ${(message||'task').substring(0,18)}`],
+    alert:    ['> ERROR', '> checking...', '> ALERT'],
+    complete: ['> done ✓', '> success', '> ready'],
+    idle:     ['> standby', '> ready', '> online']
+  };
+  const content = (lines[state] || lines.idle);
+  el.innerHTML = content.map((l,i) =>
+    `<div class="screen-line" style="animation-delay:${i*1.5}s">${l}</div>`
+  ).join('');
+}
+
+// ── COMMS LINES ───────────────────────────────────────────────
+function drawCommsLine(fromId, toId, color) {
+  const canvas = document.getElementById('comms-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const fromSlot = document.getElementById(`slot-${fromId}`);
+  const toSlot   = document.getElementById(`slot-${toId}`);
+  if (!fromSlot || !toSlot) return;
+
+  const fromRect = fromSlot.getBoundingClientRect();
+  const toRect   = toSlot.getBoundingClientRect();
+
+  const x1 = fromRect.left + fromRect.width / 2;
+  const y1 = fromRect.top  + 40;
+  const x2 = toRect.left   + toRect.width  / 2;
+  const y2 = toRect.top    + 40;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+
+  // Bezier curve
+  const cx = (x1 + x2) / 2;
+  const cy = Math.min(y1, y2) - 60;
+  ctx.quadraticCurveTo(cx, cy, x2, y2);
+
+  ctx.strokeStyle = color + 'aa';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+
+  // Animated dot along path
+  let t = 0;
+  const dot = setInterval(() => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.quadraticCurveTo(cx, cy, x2, y2);
+    ctx.strokeStyle = color + '44';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+
+    // Moving dot
+    const px = (1-t)*(1-t)*x1 + 2*(1-t)*t*cx + t*t*x2;
+    const py = (1-t)*(1-t)*y1 + 2*(1-t)*t*cy + t*t*y2;
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    t += 0.02;
+    if (t >= 1) {
+      clearInterval(dot);
+      setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 500);
+    }
+  }, 20);
+}
+
+// ── STATUS LOG ─────────────────────────────────────────────────
+function addLog(agentId, message, state) {
+  const agent = AGENTS[agentId];
+  const container = document.getElementById('log-entries');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.style.setProperty('--agent-color', agent.color);
+
+  const now = new Date();
+  const time = now.toTimeString().slice(0,5);
+  const short = (message || '').substring(0, 45);
+
+  entry.innerHTML = `
+    <span class="log-time">${time}</span>
+    <span class="log-agent">${agent.name}</span>
+    <span>${short}</span>
+  `;
+
+  container.insertBefore(entry, container.firstChild);
+  while (container.children.length > 5) {
+    container.removeChild(container.lastChild);
+  }
+}
+
+// ── RANDOM IDLE EVENTS ─────────────────────────────────────────
+function startIdleLife() {
+  const agentIds = Object.keys(AGENTS);
+
+  setInterval(() => {
+    const id = agentIds[Math.floor(Math.random() * agentIds.length)];
+    if (agentState[id].state !== 'idle') return;
+
+    // Occasionally show a pet interaction quip
+    const petQuips = ['feeding the pet', '🐾', '...', 'snack time?', ''];
+    showBubble(id, petQuips[Math.floor(Math.random() * petQuips.length)]);
+  }, 15000 + Math.random() * 10000);
+
+  // Agents occasionally wave at each other
+  setInterval(() => {
+    const idle = agentIds.filter(id => agentState[id].state === 'idle');
+    if (idle.length < 2) return;
+    const a = idle[Math.floor(Math.random() * idle.length)];
+    const b = idle.filter(x => x !== a)[Math.floor(Math.random() * (idle.length-1))];
+    showBubble(a, `👋`);
+    setTimeout(() => showBubble(b, `👋`), 800);
+  }, 40000 + Math.random() * 20000);
+}
+
+// ── BRIDGE ─────────────────────────────────────────────────────
+if (window.agentBridge) {
+  window.agentBridge.onAgentEvent((event) => {
+    const { agentId, state, message, commsTarget } = event;
+    if (!AGENTS[agentId]) return;
+
+    setState(agentId, state, message);
+
+    if (commsTarget && AGENTS[commsTarget]) {
+      const color = AGENTS[agentId].color;
+      drawCommsLine(agentId, commsTarget, color);
+      // Target reacts
+      setTimeout(() => setState(commsTarget, 'working', `← from ${AGENTS[agentId].name}`), 800);
+    }
+  });
+}
+
+// ── HIGH FIVE ──────────────────────────────────────────────────
+function highFive(agentId) {
+  if (agentState[agentId].state !== 'complete') return;
+  const slot   = document.getElementById(`slot-${agentId}`);
+  const charEl = document.getElementById(`char-${agentId}`);
+  charEl.classList.add('state-highfive');
+  showBubble(agentId, '✋ HIGH FIVE! 🙌');
+  const hand = document.createElement('div');
+  hand.className = 'floating-hand';
+  hand.textContent = '✋';
+  slot.appendChild(hand);
+  setTimeout(() => { charEl.classList.remove('state-highfive'); hand.remove(); }, 1100);
+}
+
+// ── INIT ────────────────────────────────────────────────────────
+buildOffice();
+startIdleLife();
+
+// Start everyone idle + wire up high-five clicks
+Object.keys(AGENTS).forEach(id => {
+  setState(id, 'idle', null);
+  document.getElementById(`char-${id}`).addEventListener('click', () => highFive(id));
+});
+
+// Resize canvas on window resize
+window.addEventListener('resize', () => {
+  const c = document.getElementById('comms-canvas');
+  c.width = window.innerWidth;
+  c.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
