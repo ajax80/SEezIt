@@ -4,7 +4,9 @@ const chokidar = require('chokidar');
 const fs = require('fs');
 const os = require('os');
 
-const LOG_DIR = process.env.AGENT_LOG_DIR || path.join(os.homedir(), 'agents', 'logs');
+const LOG_DIR    = process.env.AGENT_LOG_DIR    || path.join(os.homedir(), 'agents', 'logs');
+const EVENT_DIR  = process.env.AGENT_EVENT_DIR  || path.join(os.homedir(), 'agents', 'events');
+const VAULT_DIR  = process.env.OBSIDIAN_VAULT   || path.join(os.homedir(), 'Obsidian MyMachines', 'aIrZdOwN-MyMachines');
 
 // Agent definitions — which logs they own and what patterns mean what
 const AGENTS = {
@@ -47,6 +49,14 @@ const AGENTS = {
     errorPattern: /down|fail|error/i,
     completePattern: /running|ok|restarted/i,
     commsTarget: 'orca'
+  },
+  scribe: {
+    name: 'SCRIBE', role: 'Vault Keeper',
+    logs: ['obsidian.log'],
+    workPattern: /vault watch|new:|modified:/i,
+    errorPattern: /not found|error/i,
+    completePattern: /complete|no changes/i,
+    commsTarget: 'aria'
   }
 };
 
@@ -168,6 +178,59 @@ function startWatching() {
       try { logSizes[fp] = fs.statSync(fp).size; } catch(e) {}
     });
   } catch(e) {}
+
+  // Watch events dir for obsidian_change_* files → wake SCRIBE
+  const eventDir = EVENT_DIR;
+  if (!fs.existsSync(eventDir)) { try { fs.mkdirSync(eventDir, { recursive: true }); } catch(e) {} }
+  const evtWatcher = chokidar.watch(eventDir, {
+    persistent: true, ignoreInitial: true, usePolling: true, interval: 800
+  });
+  evtWatcher.on('add', (filepath) => {
+    const fname = path.basename(filepath);
+    if (fname.startsWith('obsidian_change_')) {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('agent-event', {
+          agentId: 'scribe', state: 'working',
+          message: 'New note detected in vault', commsTarget: 'aria', timestamp: Date.now()
+        });
+        setTimeout(() => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('agent-event', {
+              agentId: 'scribe', state: 'complete',
+              message: 'Note indexed ✓', commsTarget: null, timestamp: Date.now()
+            });
+          }
+        }, 4000);
+      }
+      try { fs.unlinkSync(filepath); } catch(e) {}
+    }
+  });
+
+  // Watch vault .md files directly for real-time note changes
+  if (fs.existsSync(VAULT_DIR)) {
+    const vaultWatcher = chokidar.watch(path.join(VAULT_DIR, '**/*.md'), {
+      persistent: true, ignoreInitial: true, usePolling: true, interval: 2000,
+      ignored: /.obsidian/
+    });
+    const sendScribeEvent = (fname, verb) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('agent-event', {
+          agentId: 'scribe', state: 'working',
+          message: `${verb}: ${path.basename(fname, '.md')}`, commsTarget: 'aria', timestamp: Date.now()
+        });
+        setTimeout(() => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('agent-event', {
+              agentId: 'scribe', state: 'complete',
+              message: 'Indexed ✓', commsTarget: null, timestamp: Date.now()
+            });
+          }
+        }, 3000);
+      }
+    };
+    vaultWatcher.on('add',    fp => sendScribeEvent(fp, 'New note'));
+    vaultWatcher.on('change', fp => sendScribeEvent(fp, 'Updated'));
+  }
 }
 
 app.whenReady().then(() => {

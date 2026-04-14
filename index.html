@@ -591,6 +591,14 @@ body {
   animation: idle-bob 3s ease-in-out infinite;
   filter: drop-shadow(0 0 5px rgba(223,127,255,0.3));
 }
+
+/* ── SCRIBE glows green when writing ───────────────────── */
+#char-scribe.state-working {
+  filter: drop-shadow(0 0 12px #a0e8b0) drop-shadow(0 0 4px #fff);
+}
+#char-scribe.state-complete {
+  filter: drop-shadow(0 0 8px #a0e8b0);
+}
 </style>
 </head>
 <body>
@@ -691,6 +699,19 @@ const AGENTS = {
       alert:   ['Kodi glitched', 'sorting it...', 'back in a sec'],
       complete:['Kodi back up ✓', 'Restarted OK', 'Stream live!']
     }
+  },
+  scribe: {
+    name: 'SCRIBE', role: 'Vault Keeper',
+    color: '#a0e8b0',
+    pet: '🦉', petLabel: 'Sage',
+    hobby: '🍷', hobbyLabel: 'wine',
+    stressItem: '🚬',
+    quips: {
+      working: ['New note!', 'Writing...', 'Indexing...', 'Reading vault'],
+      idle:    ['Vault quiet...', 'Sage is watching', '🍷 & parchment', 'All notes safe'],
+      alert:   ['Vault error!', 'Something missing!'],
+      complete:['Indexed ✓', 'Note saved!', 'Vault updated!']
+    }
   }
 };
 
@@ -699,8 +720,9 @@ const LAYOUT = {
   aria: { left: '8%',  bottom: '33%' },
   orca: { left: '30%', bottom: '33%' },
   vita: { left: '56%', bottom: '33%' },
-  tidy: { left: '18%', bottom: '10%' },
-  wade: { left: '62%', bottom: '10%' }
+  tidy:   { left: '18%', bottom: '10%' },
+  wade:   { left: '62%', bottom: '10%' },
+  scribe: { left: '42%', bottom: '10%' }
 };
 
 // ── STATE ────────────────────────────────────────────────────
