@@ -100,7 +100,8 @@ function startWatching() {
   const watcher = chokidar.watch(LOG_DIR, {
     persistent: true,
     ignoreInitial: true,
-    usePolling: false
+    usePolling: true,
+    interval: 500
   });
 
   watcher.on('change', (filepath) => {
