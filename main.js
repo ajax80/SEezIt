@@ -6,7 +6,7 @@ const os = require('os');
 
 const LOG_DIR    = process.env.AGENT_LOG_DIR    || path.join(os.homedir(), 'agents', 'logs');
 const EVENT_DIR  = process.env.AGENT_EVENT_DIR  || path.join(os.homedir(), 'agents', 'events');
-const VAULT_DIR  = process.env.OBSIDIAN_VAULT   || path.join(os.homedir(), 'Obsidian MyMachines', 'aIrZdOwN-MyMachines');
+const VAULT_DIR  = process.env.OBSIDIAN_VAULT   || path.join(os.homedir(), 'Ocean', 'Obsidian NueroMechanical Mesh', 'aIrZdOwN BLAK Mesh');
 
 // Agent definitions — which logs they own and what patterns mean what
 const AGENTS = {
